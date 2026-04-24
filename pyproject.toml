@@ -1,0 +1,53 @@
+[project]
+name = "oc-p7"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faiss-gpu>=1.7.2",
+    "langchain>=1.2.15",
+    "langchain-community>=0.4.1",
+    "numpy>=2.2.6",
+    "sentence-transformers>=5.4.1",
+    "torch>=2.11.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15.11",
+    "ty>=0.0.32",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = """
+    --cov=src
+    --cov-report=term
+    --cov-report=xml
+    --cov-report=html
+    --ignore=tests
+"""
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = []
+
+[tool.coverage.run]
+branch = true # measure branch coverage (better than line coverage)
+source = ["src"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true # display uncovered lines
+skip_covered = true # hide fully covered files

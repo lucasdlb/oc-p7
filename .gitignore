@@ -1,0 +1,52 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+.env*
+
+# uv-specific Python version cache
+.python-version
+
+# PyCharm project files
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# ML artifacts
+mlruns/
+mlflow.db
+*.db
+models/
+*/__pycache__/*
+*.pkl
+*.parquet
+
+# Data
+data/
+*.csv
+
+ /notebooks/
+ *.ipynb_checkpoints
+ notebooks/*.ipynb
+ notebooks/*.py
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Opencode
+.agents/
+AGENTS.md
+opencode.json

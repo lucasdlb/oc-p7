@@ -1,0 +1,43 @@
+repos:
+
+  # General repo hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+        stages: [pre-commit, manual]
+      - id: end-of-file-fixer
+        stages: [pre-commit, manual]
+      - id: trailing-whitespace
+        stages: [pre-commit, manual]
+      - id: check-added-large-files
+        stages: [pre-commit, manual]
+        exclude: '^uv\.lock$'
+
+  # Ruff linter + formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.11
+    hooks:
+      - id: ruff
+        args: [--fix, --extend-select, I]
+        stages: [pre-commit, manual]
+      - id: ruff-format
+        stages: [pre-commit, manual]
+
+  # Type checking
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty type check
+        entry: uv run ty check
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, manual]
+
+  # Tests
+      - id: pytest
+        name: pytest
+        entry: uv run pytest -q --maxfail=1
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
