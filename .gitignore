@@ -36,10 +36,11 @@ models/
 data/
 *.csv
 
- /notebooks/
- *.ipynb_checkpoints
- notebooks/*.ipynb
- notebooks/*.py
+# Notebooks
+/notebooks/
+*.ipynb_checkpoints
+notebooks/*.ipynb
+notebooks/*.py
 
 # Coverage
 .coverage
@@ -50,3 +51,5 @@ htmlcov/
 .agents/
 AGENTS.md
 opencode.json
+
+.opencode/*

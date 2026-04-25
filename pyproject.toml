@@ -5,10 +5,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "bs4>=0.0.2",
+    "dotenv>=0.9.9",
     "faiss-gpu>=1.7.2",
     "langchain>=1.2.15",
     "langchain-community>=0.4.1",
     "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "requests>=2.33.1",
     "sentence-transformers>=5.4.1",
     "torch>=2.11.0",
 ]
@@ -28,16 +32,15 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = """
-    --cov=src
+    --cov=scripts
     --cov-report=term
     --cov-report=xml
     --cov-report=html
-    --ignore=tests
 """
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
@@ -45,7 +48,7 @@ ignore = []
 
 [tool.coverage.run]
 branch = true # measure branch coverage (better than line coverage)
-source = ["src"]
+source = ["scripts"]
 
 [tool.coverage.report]
 fail_under = 90
