@@ -24,9 +24,17 @@ class OpendataConfig(BaseModel):
     dept_filter: str
 
 
+class VectorisationConfig(BaseModel):
+    model: str
+    chunk_size: int = Field(default=512, ge=1)
+    chunk_overlap: int = Field(default=50, ge=0)
+    index_dir: Path
+
+
 class Config(BaseModel):
     paths: PathsConfig
     opendata: OpendataConfig
+    vectorisation: VectorisationConfig
 
 
 def find_project_root() -> Path:
@@ -52,10 +60,15 @@ def _load() -> Config:
         if not p.is_absolute():
             raw["paths"][key] = root / p
 
+    index_dir = Path(raw["vectorisation"]["index_dir"])
+    if not index_dir.is_absolute():
+        raw["vectorisation"]["index_dir"] = root / index_dir
+
     return Config(**raw)
 
 
 CONFIG = _load()
 OPENDATA = CONFIG.opendata
 PATH = CONFIG.paths
+VEC = CONFIG.vectorisation
 OPENDATASOFT_BASE = OPENDATA.base_url

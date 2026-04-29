@@ -8,3 +8,9 @@ skipped_file = "data/events_skipped.json"
 base_url = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/evenements-publics-openagenda/records"
 page_size = 100
 dept_filter = "Bouches-du-Rhône"
+
+[vectorisation]
+model = "mistral-embed"
+chunk_size = 512
+chunk_overlap = 50
+index_dir = "vector_store"

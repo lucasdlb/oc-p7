@@ -33,6 +33,9 @@ models/
 data/
 *.csv
 
+# Vector store
+vector_store/
+
 # Notebooks
 /notebooks/
 *.ipynb_checkpoints
