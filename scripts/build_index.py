@@ -1,13 +1,23 @@
 """
 Construction de l'index vectoriel FAISS à partir des événements nettoyés.
 
-Pipeline: events_clean.csv → chunking → embeddings Mistral → FAISS index
+Pipeline:
+    events_clean.csv → Documents → chunking → embeddings Mistral → FAISS index
 
 Usage:
+    uv run python scripts/build_index.py
+
+Environment:
+    Requires MISTRAL_API_KEY in .env (for mistral-embed embeddings).
+    RUN_MODE=debug uses debug.toml → vector_store_debug/
+    RUN_MODE=production (or unset) uses config.toml → vector_store/
+
+Example:
     uv run python scripts/build_index.py
 """
 
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -15,17 +25,32 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[0].parent))
 
 import pandas as pd
+from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pydantic import SecretStr
 
 from config import PATH, VEC
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", force=True)
 logger = logging.getLogger(__name__)
 
 
 def load_clean_events() -> pd.DataFrame:
+    """Load cleaned events from CSV file configured in active config.
+
+    Reads the clean CSV file path from PATH.clean_file (controlled by RUN_MODE).
+
+    Returns:
+        pd.DataFrame: DataFrame with columns matching events_clean.csv schema
+            (uid, title, description, city, address, department, postal_code,
+            latitude, longitude, firstdate_begin, lastdate_end, keywords).
+
+    Raises:
+        SystemExit: If the clean CSV file does not exist.
+    """
     if not PATH.clean_file.exists():
         logger.error(f"{PATH.clean_file} not found — run clean_events.py first")
         raise SystemExit(1)
@@ -34,9 +59,20 @@ def load_clean_events() -> pd.DataFrame:
     return df
 
 
-def build_documents(df: pd.DataFrame) -> list:
-    from langchain_core.documents import Document
+def build_documents(df: pd.DataFrame) -> list[Document]:
+    """Convert DataFrame rows into LangChain Document objects.
 
+    Each event becomes a Document where:
+    - page_content = "{title}. {description}"
+    - metadata contains uid, title, city, firstdate_begin, lastdate_end
+
+    Args:
+        df: DataFrame of events with at least columns:
+            uid, title, description, city, firstdate_begin, lastdate_end.
+
+    Returns:
+        list[Document]: List of LangChain Documents ready for chunking.
+    """
     documents = []
     for _, row in df.iterrows():
         content = f"{row['title']}. {row['description']}"
@@ -51,29 +87,54 @@ def build_documents(df: pd.DataFrame) -> list:
     return documents
 
 
-def chunk_documents(documents: list) -> list:
+def chunk_documents(documents: list[Document]) -> list[Document]:
+    """Split documents into smaller chunks using recursive character splitting.
+
+    Uses RecursiveCharacterTextSplitter with configurable chunk_size and
+    chunk_overlap from VEC config (or debug.toml defaults).
+
+    Args:
+        documents: List of Documents to split.
+
+    Returns:
+        list[Document]: Split chunks with metadata preserved from parent documents.
+    """
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=VEC.chunk_size,
         chunk_overlap=VEC.chunk_overlap,
+        length_function=len,
+        keep_separator=False,
+        add_start_index=False,
+        strip_whitespace=True,
     )
     chunks = splitter.split_documents(documents)
     logger.info(f"Split {len(documents)} documents into {len(chunks)} chunks")
     return chunks
 
 
-def build_index(chunks: list) -> tuple[FAISS, MistralAIEmbeddings]:
-    import os
+def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
+    """Build FAISS index from document chunks using Mistral embeddings.
 
-    from dotenv import load_dotenv
-    from pydantic import SecretStr
+    Loads MISTRAL_API_KEY from environment, creates MistralAIEmbeddings
+    instance, and builds the FAISS index.
 
+    Args:
+        chunks: List of Document chunks to index.
+
+    Returns:
+        tuple[FAISS, MistralAIEmbeddings]: Tuple of (vectorstore, embeddings)
+            for save and verify steps.
+    """
     load_dotenv()
     api_key = os.getenv("MISTRAL_API_KEY")
     if not api_key:
         logger.error("MISTRAL_API_KEY not found in environment — set it in .env")
         raise SystemExit(1)
 
-    embeddings = MistralAIEmbeddings(model=VEC.model, mistral_api_key=SecretStr(api_key))
+    embeddings = MistralAIEmbeddings(
+        model=VEC.model,
+        mistral_api_key=SecretStr(api_key),
+    )
 
     logger.info(f"Building FAISS index with {len(chunks)} chunks...")
     start = time.time()
@@ -84,7 +145,18 @@ def build_index(chunks: list) -> tuple[FAISS, MistralAIEmbeddings]:
     return vectorstore, embeddings
 
 
-def main():
+def main() -> None:
+    """Run the full vectorisation pipeline end-to-end.
+
+    1. Load clean events from CSV
+    2. Build Documents
+    3. Chunk documents
+    4. Build FAISS index with Mistral embeddings
+    5. Save index to disk (VEC.index_dir)
+    6. Verify by reloading from disk
+
+    Uses RUN_MODE to select config.toml (production) or debug.toml (debug).
+    """
     df = load_clean_events()
     documents = build_documents(df)
     chunks = chunk_documents(documents)
@@ -94,7 +166,11 @@ def main():
     vectorstore.save_local(str(VEC.index_dir))
     logger.info(f"Index saved to {VEC.index_dir}")
 
-    loaded = FAISS.load_local(str(VEC.index_dir), embeddings, allow_dangerous_deserialization=True)
+    loaded = FAISS.load_local(
+        str(VEC.index_dir),
+        embeddings,
+        allow_dangerous_deserialization=True,
+    )
     logger.info(f"Verification: loaded index has {loaded.index.ntotal} vectors")
 
 

@@ -35,6 +35,7 @@ data/
 
 # Vector store
 vector_store/
+vector_store_debug/
 
 # Notebooks
 /notebooks/

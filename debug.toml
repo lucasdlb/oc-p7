@@ -1,0 +1,16 @@
+[paths]
+data_dir = "data"
+raw_file = "data/debug_events_raw.json"
+clean_file = "tests/fixtures/debug_events_clean.csv"
+skipped_file = "data/debug_events_skipped.json"
+
+[opendata]
+base_url = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/evenements-publics-openagenda/records"
+page_size = 10
+dept_filter = "Bouches-du-Rhône"
+
+[vectorisation]
+model = "mistral-embed"
+chunk_size = 256
+chunk_overlap = 30
+index_dir = "vector_store_debug"

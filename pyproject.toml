@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 dependencies = [
     "bs4>=0.0.2",
     "dotenv>=0.9.9",
-    "faiss-gpu>=1.7.2",
     "langchain>=1.2.15",
     "langchain-community>=0.4.1",
     "langchain-mistralai>=0.2.0",
@@ -19,6 +18,7 @@ dependencies = [
     "sentence-transformers>=5.4.1",
     "torch>=2.11.0",
     "tomli>=2.0.0 ; python_version < '3.11'",
+    "faiss-cpu>=1.13.2",
 ]
 
 [dependency-groups]
