@@ -9,8 +9,6 @@ wheels/
 # Virtual environments
 .venv/
 .env*
-
-# uv-specific Python version cache
 .python-version
 
 # PyCharm project files
@@ -28,7 +26,6 @@ mlruns/
 mlflow.db
 *.db
 models/
-*/__pycache__/*
 *.pkl
 *.parquet
 
@@ -47,9 +44,7 @@ notebooks/*.py
 coverage.xml
 htmlcov/
 
-# Opencode
-.agents/
+# OpenCode
 AGENTS.md
 opencode.json
-
-.opencode/*
+.opencode/

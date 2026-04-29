@@ -1,0 +1,10 @@
+[paths]
+data_dir = "data"
+raw_file = "data/events_raw.json"
+clean_file = "data/events_clean.csv"
+skipped_file = "data/events_skipped.json"
+
+[opendata]
+base_url = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/evenements-publics-openagenda/records"
+page_size = 100
+dept_filter = "Bouches-du-Rhône"

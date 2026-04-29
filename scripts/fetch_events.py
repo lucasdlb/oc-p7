@@ -3,14 +3,22 @@ Récupération des événements culturels des Bouches-du-Rhône
 via l'API OpenDataSoft (dataset evenements-publics-openagenda).
 
 Aucune clé API requise.
+
+Usage:
+    uv run python scripts/fetch_events.py
 """
 
 import json
+import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[0].parent))
 
 import requests
-from config import DATA_DIR, OPENDATASOFT_BASE, PAGE_SIZE, RAW_FILE
+
+from config import OPENDATA, OPENDATASOFT_BASE, PATH
 
 
 def fetch_page(offset: int) -> dict:
@@ -22,7 +30,7 @@ def fetch_page(offset: int) -> dict:
     )
     params = {
         "where": dept_filter,
-        "limit": PAGE_SIZE,
+        "limit": OPENDATA.page_size,
         "offset": offset,
     }
     response = requests.get(OPENDATASOFT_BASE, params=params)
@@ -43,7 +51,7 @@ def fetch_all_events() -> list:
     all_records.extend(data.get("results", []))
 
     while len(all_records) < total:
-        offset += PAGE_SIZE
+        offset += OPENDATA.page_size
         print(f"  Récupération {offset}/{total}...")
         data = fetch_page(offset=offset)
         records = data.get("results", [])
@@ -70,9 +78,9 @@ def is_future_event(timings_str: str) -> bool:
 
 def main():
     records = fetch_all_events()
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    RAW_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-    print(f"Sauvé dans {RAW_FILE}")
+    PATH.data_dir.mkdir(parents=True, exist_ok=True)
+    PATH.raw_file.write_text(json.dumps(records, ensure_ascii=False, indent=2))
+    print(f"Sauvé dans {PATH.raw_file}")
 
 
 if __name__ == "__main__":

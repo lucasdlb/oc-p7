@@ -1,7 +1,7 @@
 [project]
 name = "oc-p7"
 version = "0.1.0"
-description = "Add your description here"
+description = "RAG system for cultural event recommendations in Bouches-du-Rhône (dept. 13)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -12,9 +12,11 @@ dependencies = [
     "langchain-community>=0.4.1",
     "numpy>=2.2.6",
     "pandas>=2.3.3",
+    "pydantic>=2.0.0",
     "requests>=2.33.1",
     "sentence-transformers>=5.4.1",
     "torch>=2.11.0",
+    "tomli>=2.0.0 ; python_version < '3.11'",
 ]
 
 [dependency-groups]

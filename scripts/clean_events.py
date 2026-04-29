@@ -1,14 +1,22 @@
 """
 Nettoyage des événements bruts OpenDataSoft.
 Supprime les événements incomplets et nettoie le HTML des descriptions.
+
+Usage:
+    uv run python scripts/clean_events.py
 """
 
 import json
 import logging
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pandas as pd
 from bs4 import BeautifulSoup
-from config import CLEAN_FILE, DATA_DIR, RAW_FILE, SKIPPED_FILE
+
+from config import PATH
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -48,11 +56,11 @@ def clean_record(record: dict) -> dict:
 
 
 def main():
-    if not RAW_FILE.exists():
-        logger.error(f"{RAW_FILE} not found — run fetch_events.py first")
+    if not PATH.raw_file.exists():
+        logger.error(f"{PATH.raw_file} not found — run fetch_events.py first")
         return
 
-    raw_records = json.loads(RAW_FILE.read_text())
+    raw_records = json.loads(PATH.raw_file.read_text())
     logger.info(f"Loaded {len(raw_records)} raw records")
 
     valid_records = []
@@ -70,13 +78,13 @@ def main():
     logger.warning(f"Skipped records: {len(skipped_records)}")
 
     df = pd.DataFrame(valid_records)
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(CLEAN_FILE, index=False)
-    logger.info(f"Saved cleaned events to {CLEAN_FILE}")
+    PATH.data_dir.mkdir(parents=True, exist_ok=True)
+    df.to_csv(PATH.clean_file, index=False)
+    logger.info(f"Saved cleaned events to {PATH.clean_file}")
 
     if skipped_records:
-        SKIPPED_FILE.write_text(json.dumps(skipped_records, ensure_ascii=False, indent=2))
-        logger.warning(f"Logged {len(skipped_records)} skipped events to {SKIPPED_FILE}")
+        PATH.skipped_file.write_text(json.dumps(skipped_records, ensure_ascii=False, indent=2))
+        logger.warning(f"Logged {len(skipped_records)} skipped events to {PATH.skipped_file}")
 
 
 if __name__ == "__main__":

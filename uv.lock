@@ -1801,8 +1801,10 @@ dependencies = [
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pydantic" },
     { name = "requests" },
     { name = "sentence-transformers" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
     { name = "torch" },
 ]
 
@@ -1824,8 +1826,10 @@ requires-dist = [
     { name = "langchain-community", specifier = ">=0.4.1" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "sentence-transformers", specifier = ">=5.4.1" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0.0" },
     { name = "torch", specifier = ">=2.11.0" },
 ]
 
