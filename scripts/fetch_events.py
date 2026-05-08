@@ -22,7 +22,15 @@ from config import OPENDATA, OPENDATASOFT_BASE, PATH
 
 
 def fetch_page(offset: int) -> dict:
-    """Récupère une page d'événements depuis OpenDataSoft."""
+    """Récupère une page d'événements depuis OpenDataSoft.
+
+    Args:
+        offset: Offset de pagination pour l'API OpenDataSoft.
+
+    Returns:
+        Dict contenant les clés 'results' (liste d'événements) et
+        'total_count' (nombre total d'événements matching la requête).
+    """
     dept_filter = (
         '(location_department="Bouches-du-Rhône" '
         'OR startswith(location_postalcode, "13")) '
@@ -38,9 +46,17 @@ def fetch_page(offset: int) -> dict:
     return response.json()
 
 
-def fetch_all_events() -> list:
-    """Récupère tous les événements via pagination."""
-    all_records = []
+def fetch_all_events() -> list[dict]:
+    """Récupère tous les événements via pagination.
+
+    Effectue des appels successifs à fetch_page() en augmentant l'offset
+    jusqu'à récupération de tous les événements (filtre: Bouches-du-Rhône,
+    date de fin > maintenant).
+
+    Returns:
+        Liste de dictionnaires représentant chaque événement.
+    """
+    all_records: list[dict] = []
     offset = 0
 
     print("Connexion à OpenDataSoft...")
@@ -65,7 +81,19 @@ def fetch_all_events() -> list:
 
 
 def is_future_event(timings_str: str) -> bool:
-    """Vérifie qu'au moins un créneau est dans le futur."""
+    """Vérifie qu'au moins un créneau horaire est dans le futur.
+
+    Parse le JSON timings (liste de {begin, end}) et vérifie si au moins
+    un slot a une date de fin postérieure à maintenant (UTC).
+
+    Args:
+        timings_str: Chaîne JSON contenant les créneaux de l'événement.
+            Ex: '[{"begin":"2026-06-01T00:00:00Z","end":"2026-06-02T00:00:00Z"}]'
+
+    Returns:
+        True si au moins un créneau est dans le futur, False sinon.
+        Retourne False si timings_str est vide ou le parsing échoue.
+    """
     if not timings_str:
         return False
     try:
@@ -76,7 +104,8 @@ def is_future_event(timings_str: str) -> bool:
         return False
 
 
-def main():
+def main() -> None:
+    """Point d'entrée: récupère tous les événements et les sauvegarde."""
     records = fetch_all_events()
     PATH.data_dir.mkdir(parents=True, exist_ok=True)
     PATH.raw_file.write_text(json.dumps(records, ensure_ascii=False, indent=2))

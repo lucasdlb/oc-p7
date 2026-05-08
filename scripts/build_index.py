@@ -118,6 +118,9 @@ def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
     Loads MISTRAL_API_KEY from environment, creates MistralAIEmbeddings
     instance, and builds the FAISS index.
 
+    Processes in batches of 250 to avoid Mistral rate limiting (400 errors
+    with larger batches). If a batch fails, retries with exponential backoff.
+
     Args:
         chunks: List of Document chunks to index.
 
@@ -138,11 +141,32 @@ def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
 
     logger.info(f"Building FAISS index with {len(chunks)} chunks...")
     start = time.time()
-    vectorstore = FAISS.from_documents(chunks, embeddings)
-    elapsed = time.time() - start
-    logger.info(f"Index built in {elapsed:.1f}s — {vectorstore.index.ntotal} vectors")
 
-    return vectorstore, embeddings
+    batch_size = 250
+    vs = FAISS.from_documents(chunks[:batch_size], embeddings)
+    logger.info(f"  Batch 1 ({batch_size} chunks): OK")
+    for i in range(batch_size, len(chunks), batch_size):
+        batch = chunks[i : i + batch_size]
+        attempt = 0
+        while True:
+            try:
+                other = FAISS.from_documents(batch, embeddings)
+                vs.merge_from(other)
+                logger.info(f"  Batch {i // batch_size + 1} ({len(batch)} chunks): OK")
+                break
+            except Exception as e:
+                attempt += 1
+                if attempt > 3:
+                    logger.error(f"Batch {i} failed after {attempt} attempts: {e}")
+                    raise
+                wait = 2**attempt
+                logger.warning(f"Batch {i} failed (attempt {attempt}): {e} — retrying in {wait}s")
+                time.sleep(wait)
+
+    elapsed = time.time() - start
+    logger.info(f"Index built in {elapsed:.1f}s — {vs.index.ntotal} vectors")
+
+    return vs, embeddings
 
 
 def main() -> None:

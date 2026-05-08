@@ -24,7 +24,7 @@ repos:
       - id: ruff-format
         stages: [pre-commit, manual]
 
-  # Type checking
+  # Type checking + tests (local)
   - repo: local
     hooks:
       - id: ty
@@ -34,10 +34,9 @@ repos:
         pass_filenames: false
         stages: [pre-commit, manual]
 
-  # Tests
       - id: pytest
         name: pytest
-        entry: uv run pytest -q --maxfail=1
+        entry: uv run pytest -q --maxfail=1 --cov=scripts --cov-report=term-missing
         language: system
         pass_filenames: false
         stages: [pre-push]

@@ -1,4 +1,9 @@
-"""Configuration du projet chargée depuis config.toml (ou debug.toml)."""
+"""Configuration du projet chargée depuis config.toml (ou debug.toml).
+
+Les valeurs sont lues depuis config.toml (production) ou debug.toml (debug),
+sélectionné par la variable d'environnement RUN_MODE. Les chemins sont résolus
+relativement à la racine du projet (répertoire contenant pyproject.toml).
+"""
 
 import logging
 import os
@@ -19,6 +24,15 @@ logger = logging.getLogger(__name__)
 
 
 class PathsConfig(BaseModel):
+    """Chemins des fichiers de données.
+
+    Attributes:
+        data_dir: Répertoire contenant les données (data/).
+        raw_file: Fichier JSON brut issu de fetch_events.py.
+        clean_file: Fichier CSV nettoyé utilisé pour l'indexation.
+        skipped_file: Fichier JSON loguant les événements ignorés.
+    """
+
     data_dir: Path
     raw_file: Path
     clean_file: Path
@@ -26,12 +40,29 @@ class PathsConfig(BaseModel):
 
 
 class OpendataConfig(BaseModel):
+    """Paramètres de l'API OpenDataSoft.
+
+    Attributes:
+        base_url: URL de base de l'API OpenDataSoft.
+        page_size: Nombre d'événements par page (1-100).
+        dept_filter: Filtre géographique (ex: "Bouches-du-Rhône").
+    """
+
     base_url: str
     page_size: int = Field(default=100, ge=1, le=100)
     dept_filter: str
 
 
 class VectorisationConfig(BaseModel):
+    """Paramètres de vectorisation Mistral.
+
+    Attributes:
+        model: Nom du modèle d'embedding (ex: "mistral-embed").
+        chunk_size: Taille maximale d'un chunk en caractères.
+        chunk_overlap: Chevauchement entre chunks adjacents.
+        index_dir: Répertoire où sauvegarder le index FAISS.
+    """
+
     model: str
     chunk_size: int = Field(default=512, ge=1)
     chunk_overlap: int = Field(default=50, ge=0)
@@ -39,13 +70,22 @@ class VectorisationConfig(BaseModel):
 
 
 class Config(BaseModel):
+    """Configuration globale du projet."""
+
     paths: PathsConfig
     opendata: OpendataConfig
     vectorisation: VectorisationConfig
 
 
 def find_project_root() -> Path:
-    """Find the project root by searching for pyproject.toml upward."""
+    """Trouve la racine du projet en cherchant pyproject.toml upward.
+
+    Returns:
+        Chemin absolu du répertoire contenant pyproject.toml.
+
+    Raises:
+        FileNotFoundError: Si pyproject.toml n'est pas trouvé.
+    """
     for parent in Path(__file__).resolve().parents:
         if (parent / "pyproject.toml").exists():
             return parent
@@ -53,10 +93,18 @@ def find_project_root() -> Path:
 
 
 def _resolve_paths(raw: dict, root: Path) -> dict:
+    """Résout les chemins relatifs par rapport à la racine du projet.
+
+    Args:
+        raw: Dict brut issu du fichier TOML (non encore résolu).
+        root: Racine du projet (répertoire contenant pyproject.toml).
+
+    Returns:
+        Dict avec tous les chemins résolus en absolus.
+    """
     data_dir = Path(raw["paths"]["data_dir"])
     if not data_dir.is_absolute():
-        data_dir = root / data_dir
-    raw["paths"]["data_dir"] = data_dir
+        raw["paths"]["data_dir"] = root / data_dir
 
     for key in ("raw_file", "clean_file", "skipped_file"):
         p = Path(raw["paths"][key])
@@ -71,6 +119,14 @@ def _resolve_paths(raw: dict, root: Path) -> dict:
 
 
 def _load() -> Config:
+    """Charge et retourne la configuration active.
+
+    Lit RUN_MODE depuis l'environnement (défaut: "production").
+    Charge debug.toml si RUN_MODE="debug", sinon config.toml.
+
+    Returns:
+        Instance Config avec tous les paramètres validés par Pydantic.
+    """
     load_dotenv()
 
     root = find_project_root()

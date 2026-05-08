@@ -23,12 +23,38 @@ logger = logging.getLogger(__name__)
 
 
 def clean_html(text: str) -> str:
+    """Nettoie le HTML d'une chaîne de caractères.
+
+    Retire toutes les balises HTML et retourne le texte brut,
+    avec les espaces normalisés.
+
+    Args:
+        text: Chaîne contenant du HTML (peut être vide ou None).
+
+    Returns:
+        Texte nettoyé sans balises, strips des espaces.
+        Retourne "" si text est vide ou None.
+    """
     if not text:
         return ""
     return BeautifulSoup(text, "html.parser").get_text(separator=" ", strip=True)
 
 
 def is_valid_event(record: dict) -> tuple[bool, str]:
+    """Vérifie qu'un enregistrement OpenDataSoft est complet.
+
+    Un événement valide doit avoir :
+    - title_fr (titre en français)
+    - description_fr (description en français)
+    - timings (créneaux horaires — même vide, doit être présent)
+
+    Args:
+        record: Dict représentant un événement brut depuis l'API OpenDataSoft.
+
+    Returns:
+        Tuple (True, "") si l'événement est valide.
+        Tuple (False, reason) sinon, où reason décrit le champ manquant.
+    """
     if not record.get("title_fr"):
         return False, "missing title_fr"
     if not record.get("description_fr"):
@@ -39,6 +65,20 @@ def is_valid_event(record: dict) -> tuple[bool, str]:
 
 
 def clean_record(record: dict) -> dict:
+    """Normalise et nettoie un enregistrement brut OpenDataSoft.
+
+    Convertit les noms de champs OpenDataSoft en noms normalisés
+    (snake_case) et nettoie le HTML des champs texte.
+
+    Args:
+        record: Dict brut issu de l'API OpenDataSoft avec les champs
+            title_fr, description_fr, location_city, etc.
+
+    Returns:
+        Dict nettoyé avec les clés : uid, title, description, city,
+        address, department, postal_code, latitude, longitude,
+        firstdate_begin, lastdate_end, keywords.
+    """
     return {
         "uid": record.get("uid"),
         "title": record["title_fr"],
@@ -55,7 +95,8 @@ def clean_record(record: dict) -> dict:
     }
 
 
-def main():
+def main() -> None:
+    """Point d'entrée : lit le JSON brut, filtre, nettoie et exporte en CSV."""
     if not PATH.raw_file.exists():
         logger.error(f"{PATH.raw_file} not found — run fetch_events.py first")
         return
@@ -63,8 +104,8 @@ def main():
     raw_records = json.loads(PATH.raw_file.read_text())
     logger.info(f"Loaded {len(raw_records)} raw records")
 
-    valid_records = []
-    skipped_records = []
+    valid_records: list[dict] = []
+    skipped_records: list[dict] = []
 
     for record in raw_records:
         if is_valid_event(record)[0]:
