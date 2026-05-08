@@ -17,27 +17,24 @@ Environment:
 """
 
 import json
-import logging
-import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from typing import Any, cast
 
 import pandas as pd
-from dotenv import load_dotenv
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
-from pydantic import SecretStr
 from ragas import evaluate
 from ragas.dataset import Dataset
 from ragas.metrics.collections import AnswerRelevancy, ContextRecall, Faithfulness
 
 from api.rag import ask as rag_ask
+from config import SETTINGS
+from logging_config import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", force=True)
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 
 def get_mistral_llm():
@@ -51,11 +48,10 @@ def get_mistral_llm():
     """
     from ragas.integrations.langchain import LangchainLLMWrapper
 
-    api_key = os.getenv("MISTRAL_API_KEY", "")
     llm = ChatMistralAI(
         model="mistral-large-latest",
         temperature=0.0,
-        mistral_api_key=SecretStr(api_key),
+        mistral_api_key=SETTINGS.mistral_api_key,
     )
     return LangchainLLMWrapper(llm)
 
@@ -135,8 +131,6 @@ def build_dataset(test_cases: list[dict]) -> Dataset:
 
 def main() -> object:  # pyright: ignore[reportReturnType]
     """Point d'entrée : charge le test set, exécute l'évaluation Ragas, affiche les résultats."""
-    load_dotenv()
-
     test_set_path = Path(__file__).resolve().parents[1] / "docs" / "test_set.json"
     if not test_set_path.exists():
         logger.error(f"Test set not found: {test_set_path}")

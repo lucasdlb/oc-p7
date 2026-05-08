@@ -16,8 +16,6 @@ Example:
     uv run python scripts/build_index.py
 """
 
-import logging
-import os
 import sys
 import time
 from pathlib import Path
@@ -25,17 +23,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[0].parent))
 
 import pandas as pd
-from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pydantic import SecretStr
 
-from config import PATH, VEC
+from config import PATH, SETTINGS, VEC
+from logging_config import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", force=True)
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 
 def load_clean_events() -> pd.DataFrame:
@@ -115,9 +111,7 @@ def chunk_documents(documents: list[Document]) -> list[Document]:
 def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
     """Build FAISS index from document chunks using Mistral embeddings.
 
-    Loads MISTRAL_API_KEY from environment, creates MistralAIEmbeddings
-    instance, and builds the FAISS index.
-
+    Reads MISTRAL_API_KEY from SETTINGS (validated at startup).
     Processes in batches of 250 to avoid Mistral rate limiting (400 errors
     with larger batches). If a batch fails, retries with exponential backoff.
 
@@ -128,15 +122,9 @@ def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
         tuple[FAISS, MistralAIEmbeddings]: Tuple of (vectorstore, embeddings)
             for save and verify steps.
     """
-    load_dotenv()
-    api_key = os.getenv("MISTRAL_API_KEY")
-    if not api_key:
-        logger.error("MISTRAL_API_KEY not found in environment — set it in .env")
-        raise SystemExit(1)
-
     embeddings = MistralAIEmbeddings(
         model=VEC.model,
-        mistral_api_key=SecretStr(api_key),
+        mistral_api_key=SETTINGS.mistral_api_key,
     )
 
     logger.info(f"Building FAISS index with {len(chunks)} chunks...")

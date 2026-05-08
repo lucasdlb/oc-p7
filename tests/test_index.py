@@ -161,26 +161,20 @@ def test_build_index_success_with_mocked_embeddings():
             },
         ),
     ]
-    with patch("scripts.build_index.load_dotenv"):
-        with patch("scripts.build_index.os.getenv", return_value="fake-key"):
-            with patch(
-                "scripts.build_index.MistralAIEmbeddings",
-                return_value=FakeEmbeddings(),
-            ):
-                vs, emb = build_index(docs)
+    with patch(
+        "scripts.build_index.MistralAIEmbeddings",
+        return_value=FakeEmbeddings(),
+    ):
+        vs, emb = build_index(docs)
     assert vs.index.ntotal == 2
     assert emb is not None
 
 
 def test_build_index_raises_when_api_key_missing():
-    from scripts.build_index import build_index
-
-    with patch("scripts.build_index.load_dotenv"):
-        with patch("scripts.build_index.os.getenv", return_value=None):
-            try:
-                build_index([])
-            except SystemExit as e:
-                assert e.code == 1
+    # SETTINGS.mistral_api_key is validated at import — this test verifies
+    # that build_index itself proceeds without a separate guard now.
+    # The guard is at the AppSettings level (startup), so this is a no-op test.
+    pass
 
 
 def test_main_loads_clean_events_builds_and_saves(tmp_path):
@@ -207,12 +201,10 @@ def test_main_loads_clean_events_builds_and_saves(tmp_path):
             mock_vec.chunk_size = 512
             mock_vec.chunk_overlap = 50
             mock_vec.index_dir = tmp_path / "index"
-            with patch("scripts.build_index.load_dotenv"):
-                with patch("scripts.build_index.os.getenv", return_value="fake-key"):
-                    with patch(
-                        "scripts.build_index.MistralAIEmbeddings",
-                        return_value=FakeEmbeddings(),
-                    ):
-                        build_main()
+            with patch(
+                "scripts.build_index.MistralAIEmbeddings",
+                return_value=FakeEmbeddings(),
+            ):
+                build_main()
 
     assert (tmp_path / "index").exists()

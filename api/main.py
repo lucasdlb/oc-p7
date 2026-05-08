@@ -13,7 +13,9 @@ from api.models import (
     RebuildResponse,
     Source,
 )
+from logging_config import setup_logging
 
+logger = setup_logging(__name__)
 _index_loaded: bool = False
 
 

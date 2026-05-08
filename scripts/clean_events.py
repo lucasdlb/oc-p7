@@ -7,7 +7,6 @@ Usage:
 """
 
 import json
-import logging
 import sys
 from pathlib import Path
 
@@ -17,9 +16,9 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 from config import PATH
+from logging_config import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 
 def clean_html(text: str) -> str:

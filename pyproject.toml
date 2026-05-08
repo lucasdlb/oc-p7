@@ -23,6 +23,7 @@ dependencies = [
     "tomli>=2.0.0 ; python_version < '3.11'",
     "faiss-cpu>=1.13.2",
     "uvicorn>=0.46.0",
+    "pydantic-settings>=2.14.0",
 ]
 
 [dependency-groups]
@@ -39,12 +40,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-#addopts = """
-#    --cov=scripts
-#    --cov-report=term
-#    --cov-report=xml
-#    --cov-report=html
-#"""
+addopts = "--ignore=tests/integration"
+#   Coverage runs at pre-push only (pre-commit hook). To run manually:
+#   uv run pytest --cov=scripts --cov-report=term-missing
 
 [tool.ruff]
 line-length = 100
@@ -64,8 +62,12 @@ show_missing = true # display uncovered lines
 skip_covered = true # hide fully covered files
 
 [tool.pyright]
-# Ragas has incomplete type stubs — ignore in test/evaluate_rag.py
-include = ["api", "config.py", "scripts", "tests/test_*.py"]
+# Ragas has incomplete type stubs — ignore evaluate_rag.py
+# config.py excluded: pydantic-settings AppSettings() not understood by static checkers
+include = ["api", "scripts", "tests/test_*.py"]
 
 [tool.pyright.analysis]
-ignore = ["tests/evaluate_rag.py"]
+ignore = ["tests/integration/evaluate_rag.py", "config.py"]
+
+[tool.ty.analysis]
+respect-type-ignore-comments = true

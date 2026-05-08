@@ -1,26 +1,59 @@
 """Configuration du projet chargée depuis config.toml (ou debug.toml).
 
-Les valeurs sont lues depuis config.toml (production) ou debug.toml (debug),
-sélectionné par la variable d'environnement RUN_MODE. Les chemins sont résolus
-relativement à la racine du projet (répertoire contenant pyproject.toml).
+Les valeurs statiques (chemins, API params, vectorisation) sont lues depuis
+config.toml (production) ou debug.toml (debug), sélectionné par RUN_MODE.
+
+Les secrets et variables d'environnement (MISTRAL_API_KEY, RUN_MODE, DEBUG)
+sont validés au démarrage via AppSettings (pydantic-settings).
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+from pydantic import BaseModel, Field, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
 
-from pydantic import BaseModel, Field
-
 logging.basicConfig(level=logging.INFO, format="%(message)s", force=True)
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Environment / secrets — validated at import time via pydantic-settings
+# ---------------------------------------------------------------------------
+
+
+class AppSettings(BaseSettings):
+    """Variables d'environnement et secrets de l'application.
+
+    Lus depuis .env (ou l'environnement). Échec rapide au démarrage si
+    une variable requise est absente.
+
+    Attributes:
+        mistral_api_key: Clé API Mistral (requise pour embeddings et LLM).
+        run_mode: Mode d'exécution — "debug" ou "production" (défaut).
+        debug: Active les logs verbeux en texte brut (défaut: False).
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    mistral_api_key: SecretStr
+    run_mode: str = "production"
+    debug: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Static config — loaded from config.toml or debug.toml
+# ---------------------------------------------------------------------------
 
 
 class PathsConfig(BaseModel):
@@ -119,20 +152,17 @@ def _resolve_paths(raw: dict, root: Path) -> dict:
 
 
 def _load() -> Config:
-    """Charge et retourne la configuration active.
+    """Charge et retourne la configuration TOML active.
 
-    Lit RUN_MODE depuis l'environnement (défaut: "production").
+    Lit RUN_MODE depuis SETTINGS (défaut: "production").
     Charge debug.toml si RUN_MODE="debug", sinon config.toml.
 
     Returns:
         Instance Config avec tous les paramètres validés par Pydantic.
     """
-    load_dotenv()
-
     root = find_project_root()
-    run_mode = os.getenv("RUN_MODE", "production")
-    config_file = "debug.toml" if run_mode == "debug" else "config.toml"
-    logger.info(f"RUN_MODE={run_mode} — loading {config_file}")
+    config_file = "debug.toml" if SETTINGS.run_mode == "debug" else "config.toml"
+    logger.info(f"RUN_MODE={SETTINGS.run_mode} — loading {config_file}")
 
     toml_path = root / config_file
     raw = tomllib.loads(toml_path.read_text(encoding="utf-8"))
@@ -141,6 +171,11 @@ def _load() -> Config:
     return Config(**raw)
 
 
+# ---------------------------------------------------------------------------
+# Module-level singletons
+# ---------------------------------------------------------------------------
+
+SETTINGS = AppSettings()  # type: ignore[call-arg]  # pydantic-settings reads env/dotenv
 CONFIG = _load()
 OPENDATA = CONFIG.opendata
 PATH = CONFIG.paths
