@@ -34,6 +34,9 @@ dev = [
     "ruff>=0.15.11",
     "ty>=0.0.32",
 ]
+ui = [
+    "gradio>=6.14.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
