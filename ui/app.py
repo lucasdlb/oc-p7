@@ -90,13 +90,13 @@ def call_rebuild() -> str:
 
 def chat(
     message: str,
-    history: list[list[str | None]],
-) -> tuple[list[list[str | None]], str, str]:
+    history: list[dict],
+) -> tuple[list[dict], str, str]:
     """Send a message to /ask and append the exchange to history.
 
     Args:
         message: User input from the textbox.
-        history: Current gr.Chatbot history ([[user, assistant], ...]).
+        history: Current gr.Chatbot history (list of {role, content} dicts).
 
     Returns:
         (updated_history, sources_md, cleared_input)
@@ -106,7 +106,10 @@ def chat(
         return history, "", ""
 
     answer, sources_md = call_ask(message)
-    history = history + [[message, answer]]
+    history = history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": answer},
+    ]
     return history, sources_md, ""
 
 
