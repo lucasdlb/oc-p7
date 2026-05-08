@@ -20,12 +20,13 @@ SYSTEM_PROMPT = (
     "Réponds toujours en français."
 )
 
-PROMPT_TEMPLATE = """Contexte:
-{context}
-
-Question: {question}
-
-Réponse:"""
+PROMPT_TEMPLATE = (
+    "Tu es un assistant culturel spécialisé dans les événements des Bouches-du-Rhône.\n"
+    "Réponds uniquement en te basant sur les événements fournis dans le contexte.\n"
+    "Si tu ne trouves pas d'événement pertinent, dis-le clairement.\n"
+    "Réponds toujours en français.\n\n"
+    "Contexte:\n{context}\n\nQuestion: {question}\n\nRéponse:"
+)
 
 
 def load_vectorstore() -> FAISS:
