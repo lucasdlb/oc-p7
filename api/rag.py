@@ -11,7 +11,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 
-from config import CONFIG
+from config import CONFIG, SETTINGS
 
 SYSTEM_PROMPT = (
     "Tu es un assistant culturel spécialisé dans les événements des Bouches-du-Rhône. "
@@ -40,7 +40,10 @@ def load_vectorstore() -> FAISS:
         FAISS vector store with the embedded event chunks loaded.
     """
     config = CONFIG
-    embeddings = MistralAIEmbeddings(model="mistral-embed")
+    embeddings = MistralAIEmbeddings(
+        model="mistral-embed",
+        mistral_api_key=SETTINGS.mistral_api_key,
+    )
     vectorstore = FAISS.load_local(
         str(config.vectorisation.index_dir),
         embeddings=embeddings,
@@ -59,7 +62,11 @@ def build_chain(vectorstore: FAISS) -> RetrievalQA:
         RetrievalQA chain configured with mistral-large-latest (temperature 0.3)
         and a custom French prompt.
     """
-    llm = ChatMistralAI(model="mistral-large-latest", temperature=0.3)
+    llm = ChatMistralAI(
+        model="mistral-large-latest",
+        temperature=0.3,
+        mistral_api_key=SETTINGS.mistral_api_key,
+    )
     retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE,
