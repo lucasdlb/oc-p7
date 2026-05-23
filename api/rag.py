@@ -1,10 +1,7 @@
 """RAG chain logic: vector store loading, LLM chain construction, and queries."""
 
-import os
 import subprocess
 import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from langchain_classic.chains import RetrievalQA
 from langchain_community.vectorstores import FAISS
@@ -13,12 +10,9 @@ from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 
 from config import CONFIG, SETTINGS
 
-SYSTEM_PROMPT = (
-    "Tu es un assistant culturel spécialisé dans les événements des Bouches-du-Rhône. "
-    "Réponds uniquement en te basant sur les événements fournis dans le contexte. "
-    "Si tu ne trouves pas d'événement pertinent, dis-le clairement. "
-    "Réponds toujours en français."
-)
+# Module-level singleton — chargé une fois au démarrage via init_vectorstore()
+_vectorstore: FAISS | None = None
+
 
 PROMPT_TEMPLATE = (
     "Tu es un assistant culturel spécialisé dans les événements des Bouches-du-Rhône.\n"
@@ -27,6 +21,16 @@ PROMPT_TEMPLATE = (
     "Réponds toujours en français.\n\n"
     "Contexte:\n{context}\n\nQuestion: {question}\n\nRéponse:"
 )
+
+
+def init_vectorstore() -> None:
+    """Charge le vector store depuis le disque et le stocke en mémoire.
+
+    À appeler une seule fois au démarrage (lifespan FastAPI). Toutes les
+    requêtes suivantes réutilisent l'instance en mémoire via _vectorstore.
+    """
+    global _vectorstore
+    _vectorstore = load_vectorstore()
 
 
 def load_vectorstore() -> FAISS:
@@ -97,8 +101,8 @@ def ask(question: str) -> dict[str, object]:
             - answer: LLM-generated answer string
             - sources: list of dicts with title, city, date
     """
-    vectorstore = load_vectorstore()
-    chain = build_chain(vectorstore)
+    vs = _vectorstore or load_vectorstore()
+    chain = build_chain(vs)
     result = chain.invoke({"query": question})
     sources: list[dict[str, str]] = []
     for doc in result.get("source_documents", []):
@@ -108,6 +112,7 @@ def ask(question: str) -> dict[str, object]:
                 "title": str(metadata.get("title", "")),
                 "city": str(metadata.get("city", "")),
                 "date": str(metadata.get("date", "")),
+                "content": str(doc.page_content),
             }
         )
     return {

@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     global _index_loaded
     try:
-        rag.load_vectorstore()
+        rag.init_vectorstore()
         _index_loaded = True
     except Exception:
         _index_loaded = False

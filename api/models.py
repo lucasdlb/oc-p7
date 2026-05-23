@@ -31,6 +31,7 @@ class Source(BaseModel):
     title: str
     city: str
     date: str
+    content: str = ""
 
 
 class AskResponse(BaseModel):
