@@ -11,6 +11,7 @@ import logging
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -21,6 +22,31 @@ else:
 
 logging.basicConfig(level=logging.INFO, format="%(message)s", force=True)
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Project root — resolved once at import time, relative to this file
+# ---------------------------------------------------------------------------
+
+
+def _find_project_root() -> Path:
+    """Trouve la racine du projet en cherchant pyproject.toml vers le haut.
+
+    Démarre depuis ce fichier (config.py) et remonte jusqu'à trouver
+    un répertoire contenant pyproject.toml. Fonctionne quel que soit le
+    répertoire de travail courant.
+
+    Returns:
+        Chemin absolu de la racine du projet.
+    """
+    current = Path(__file__).resolve()
+    for parent in [current] + list(current.parents):
+        if (parent / "pyproject.toml").exists():
+            return parent
+    return current.parent
+
+
+PROJECT_ROOT = _find_project_root()
 
 
 # ---------------------------------------------------------------------------
@@ -41,7 +67,7 @@ class AppSettings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(PROJECT_ROOT / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -49,6 +75,7 @@ class AppSettings(BaseSettings):
     mistral_api_key: SecretStr
     run_mode: str = "production"
     debug: bool = False
+    hf_token: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -110,21 +137,6 @@ class Config(BaseModel):
     vectorisation: VectorisationConfig
 
 
-def find_project_root() -> Path:
-    """Trouve la racine du projet en cherchant pyproject.toml upward.
-
-    Returns:
-        Chemin absolu du répertoire contenant pyproject.toml.
-
-    Raises:
-        FileNotFoundError: Si pyproject.toml n'est pas trouvé.
-    """
-    for parent in Path(__file__).resolve().parents:
-        if (parent / "pyproject.toml").exists():
-            return parent
-    raise FileNotFoundError("pyproject.toml not found — is this a uv project?")
-
-
 def _resolve_paths(raw: dict, root: Path) -> dict:
     """Résout les chemins relatifs par rapport à la racine du projet.
 
@@ -160,13 +172,12 @@ def _load() -> Config:
     Returns:
         Instance Config avec tous les paramètres validés par Pydantic.
     """
-    root = find_project_root()
     config_file = "debug.toml" if SETTINGS.run_mode == "debug" else "config.toml"
     logger.info(f"RUN_MODE={SETTINGS.run_mode} — loading {config_file}")
 
-    toml_path = root / config_file
+    toml_path = PROJECT_ROOT / config_file
     raw = tomllib.loads(toml_path.read_text(encoding="utf-8"))
-    raw = _resolve_paths(raw, root)
+    raw = _resolve_paths(raw, PROJECT_ROOT)
 
     return Config(**raw)
 
@@ -175,7 +186,9 @@ def _load() -> Config:
 # Module-level singletons
 # ---------------------------------------------------------------------------
 
+load_dotenv(PROJECT_ROOT / ".env")  # injecte le .env dans os.environ (HF_TOKEN, etc.)
 SETTINGS = AppSettings()  # type: ignore[call-arg]  # pydantic-settings reads env/dotenv
+
 CONFIG = _load()
 OPENDATA = CONFIG.opendata
 PATH = CONFIG.paths
