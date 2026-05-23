@@ -124,6 +124,8 @@ def build_index(chunks: list[Document]) -> tuple[FAISS, MistralAIEmbeddings]:
         tuple[FAISS, MistralAIEmbeddings]: Tuple of (vectorstore, embeddings)
             for save and verify steps.
     """
+    if not SETTINGS.mistral_api_key:
+        raise RuntimeError("MISTRAL_API_KEY is required to build the FAISS index")
     embeddings = MistralAIEmbeddings(
         model=VEC.model,
         mistral_api_key=SETTINGS.mistral_api_key,
