@@ -10,7 +10,9 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(
+    0, str(next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists()))
+)
 
 import pandas as pd
 from bs4 import BeautifulSoup

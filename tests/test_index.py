@@ -3,7 +3,9 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(
+    0, str(next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists()))
+)
 
 from config import CONFIG
 
@@ -27,7 +29,15 @@ def test_index_dir_exists_for_debug():
 def test_load_clean_events_reads_from_configured_path():
     from scripts.build_index import load_clean_events
 
-    df = load_clean_events()
+    project_root = next(
+        p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists()
+    )
+    fixture = project_root / "tests" / "fixtures" / "debug_events_clean.csv"
+
+    with patch("scripts.build_index.PATH") as mock_path:
+        mock_path.clean_file = fixture
+        df = load_clean_events()
+
     assert len(df) == 2
     assert "uid" in df.columns
     assert df.iloc[0]["title"] == "Festival Jazz en Provence"

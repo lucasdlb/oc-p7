@@ -20,7 +20,9 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[0].parent))
+sys.path.insert(
+    0, str(next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists()))
+)
 
 import pandas as pd
 from langchain_community.vectorstores import FAISS
