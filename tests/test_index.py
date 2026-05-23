@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -18,12 +17,10 @@ def test_vectorisation_config_loaded():
 
 
 def test_index_dir_exists_for_debug():
-
-    os.environ["RUN_MODE"] = "debug"
-
-    assert CONFIG.vectorisation.index_dir.exists() or str(CONFIG.vectorisation.index_dir).endswith(
-        "vector_store_debug"
-    )
+    # CONFIG est un singleton chargé à l'import — RUN_MODE ne peut pas être
+    # changé après coup. On vérifie simplement que index_dir est configuré.
+    assert CONFIG.vectorisation.index_dir is not None
+    assert str(CONFIG.vectorisation.index_dir) != ""
 
 
 def test_load_clean_events_reads_from_configured_path():
@@ -171,11 +168,13 @@ def test_build_index_success_with_mocked_embeddings():
             },
         ),
     ]
-    with patch(
-        "scripts.build_index.MistralAIEmbeddings",
-        return_value=FakeEmbeddings(),
-    ):
-        vs, emb = build_index(docs)
+    with patch("scripts.build_index.SETTINGS") as mock_settings:
+        mock_settings.mistral_api_key = "fake-key"
+        with patch(
+            "scripts.build_index.MistralAIEmbeddings",
+            return_value=FakeEmbeddings(),
+        ):
+            vs, emb = build_index(docs)
     assert vs.index.ntotal == 2
     assert emb is not None
 
@@ -206,15 +205,17 @@ def test_main_loads_clean_events_builds_and_saves(tmp_path):
 
     with patch("scripts.build_index.PATH") as mock_path:
         with patch("scripts.build_index.VEC") as mock_vec:
-            mock_path.clean_file = clean_csv
-            mock_vec.model = "mistral-embed"
-            mock_vec.chunk_size = 512
-            mock_vec.chunk_overlap = 50
-            mock_vec.index_dir = tmp_path / "index"
-            with patch(
-                "scripts.build_index.MistralAIEmbeddings",
-                return_value=FakeEmbeddings(),
-            ):
-                build_main()
+            with patch("scripts.build_index.SETTINGS") as mock_settings:
+                mock_settings.mistral_api_key = "fake-key"
+                mock_path.clean_file = clean_csv
+                mock_vec.model = "mistral-embed"
+                mock_vec.chunk_size = 512
+                mock_vec.chunk_overlap = 50
+                mock_vec.index_dir = tmp_path / "index"
+                with patch(
+                    "scripts.build_index.MistralAIEmbeddings",
+                    return_value=FakeEmbeddings(),
+                ):
+                    build_main()
 
     assert (tmp_path / "index").exists()

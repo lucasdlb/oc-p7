@@ -72,7 +72,7 @@ class AppSettings(BaseSettings):
         extra="ignore",
     )
 
-    mistral_api_key: SecretStr
+    mistral_api_key: SecretStr | None = None
     run_mode: str = "production"
     debug: bool = False
     hf_token: str | None = None

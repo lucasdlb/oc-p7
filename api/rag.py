@@ -43,6 +43,8 @@ def load_vectorstore() -> FAISS:
     Returns:
         FAISS vector store with the embedded event chunks loaded.
     """
+    if not SETTINGS.mistral_api_key:
+        raise RuntimeError("MISTRAL_API_KEY is required to load the vector store")
     config = CONFIG
     embeddings = MistralAIEmbeddings(
         model="mistral-embed",
@@ -66,6 +68,8 @@ def build_chain(vectorstore: FAISS) -> RetrievalQA:
         RetrievalQA chain configured with mistral-large-latest (temperature 0.3)
         and a custom French prompt.
     """
+    if not SETTINGS.mistral_api_key:
+        raise RuntimeError("MISTRAL_API_KEY is required to build the RAG chain")
     llm = ChatMistralAI(
         model="mistral-large-latest",
         temperature=0.3,
