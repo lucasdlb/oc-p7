@@ -184,4 +184,4 @@ with gr.Blocks(title="Assistant Événements Culturels — Bouches-du-Rhône") a
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, show_error=True)

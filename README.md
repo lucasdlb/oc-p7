@@ -231,7 +231,7 @@ uv run --group ui python ui/app.py
 
 ```bash
 uv run pytest                      # tests unitaires (hors intégration)
-uv run pytest tests/integration/   # évaluation Ragas (nécessite MISTRAL_API_KEY + index)
+uv uv run python -m tests.integration.evaluate_rag   # évaluation Ragas (nécessite MISTRAL_API_KEY + index)
 uv run pre-commit run --all-files  # lint + typage + tests
 ```
 
@@ -262,18 +262,63 @@ Résultats exportés dans `docs/evaluation_results.csv`.
 
 ## Docker
 
+### Prérequis
+
+L'index vectoriel doit être construit **avant** de lancer le conteneur (voir [Pipeline](#pipeline)). Il sera monté en volume.
+
+### Méthode recommandée : docker compose
+
 ```bash
-# Build
+# 1. Construire l'index vectoriel en local (une seule fois)
+uv run python scripts/fetch_events.py
+uv run python scripts/clean_events.py
+uv run python scripts/build_index.py
+
+# 2. Premier lancement : build des images + démarrage
+sudo docker compose up --build
+
+# 3. Lancements suivants : réutilise les images existantes
+sudo docker compose up           # logs dans le terminal (Ctrl+C pour arrêter)
+sudo docker compose up -d        # mode détaché (rend la main immédiatement)
+
+# Suivi des logs en mode détaché
+sudo docker compose logs -f      # tous les services
+sudo docker compose logs api     # service spécifique
+
+# Arrêt
+sudo docker compose down
+```
+
+`docker compose` démarre deux services :
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| `api` | http://localhost:8000 | API FastAPI (Swagger sur `/docs`) |
+| `ui` | http://localhost:7860 | Interface Gradio |
+
+Le service `ui` communique avec `api` via le réseau Docker interne (`http://api:8000`). Le fichier `.env` est lu automatiquement pour injecter `MISTRAL_API_KEY` dans le service `api`. Les répertoires `vector_store/` et `data/` sont montés en volumes.
+
+### Alternative : docker run
+
+```bash
+# Build de l'image API
 docker build -t agenda-culturel-13 .
 
-# Run (mount le vector_store pré-construit)
+# Run API (monte le vector_store pré-construit)
 docker run -p 8000:8000 \
   -e MISTRAL_API_KEY=sk-... \
   -v $(pwd)/vector_store:/app/vector_store \
+  -v $(pwd)/data:/app/data \
   agenda-culturel-13
+
+# Build et run de l'UI (dans un second terminal)
+docker build -t agenda-culturel-13-ui -f ui/Dockerfile .
+docker run -p 7860:7860 \
+  -e API_BASE_URL=http://host.docker.internal:8000 \
+  agenda-culturel-13-ui
 ```
 
-L'image embarque uniquement `api/`, `config.py` et `config.toml`. L'index vectoriel est monté en volume pour éviter de le reconstruire à chaque déploiement.
+L'image API embarque `api/`, `scripts/`, `logging_config.py`, `config.py` et `config.toml`. L'index vectoriel est monté en volume pour éviter de le reconstruire à chaque déploiement.
 
 ---
 
@@ -312,15 +357,6 @@ Pour un usage offline ou sur données sensibles, `all-MiniLM-L6-v2` ou `paraphra
 
 **Choix retenu** : FAISS (Facebook AI Similarity Search) — bibliothèque locale, zéro infrastructure, index sauvegardé sur disque. Suffisant pour un corpus de quelques milliers d'événements.
 
-**Alternatives**
-| Alternative | Type | Avantages | Inconvénients |
-|-------------|------|-----------|---------------|
-| **Chroma** | Local | API plus simple, métadonnées natives, persistance sans pickle | Moins mature sur les gros volumes |
-| **Qdrant** | Service/local | Filtres sur métadonnées, REST API, cloud managé | Infrastructure supplémentaire |
-| **Pinecone** | Cloud managé | Scalabilité infinie, zéro ops | Payant, dépendance externe |
-| **Weaviate** | Service | GraphQL, filtres riches, hybride BM25+vecteur | Complexité de déploiement |
-| **pgvector** | PostgreSQL | Données + vecteurs dans une seule BDD | Nécessite PostgreSQL, moins rapide |
-
 FAISS est le choix le plus simple pour un prototype local. En production avec des besoins de filtrage sur les métadonnées (par ville, par date), **Qdrant** ou **Chroma** offriraient une meilleure ergonomie.
 
 ---
@@ -347,6 +383,7 @@ FAISS est le choix le plus simple pour un prototype local. En production avec de
 **Choix retenu** : `ChatMistralAI(model="mistral-large-latest", temperature=0.3)` — modèle performant en français, même fournisseur que les embeddings.
 
 **Alternatives**
+
 | Alternative | Avantages | Inconvénients |
 |-------------|-----------|---------------|
 | `mistral-small` | Moins cher, plus rapide | Moins précis sur les nuances |
@@ -361,6 +398,7 @@ FAISS est le choix le plus simple pour un prototype local. En production avec de
 **Choix retenu** : tous les documents récupérés (k=4 chunks) sont concaténés dans un seul contexte avant d'être envoyés au LLM.
 
 **Alternatives**
+
 | Type | Description | Quand l'utiliser |
 |------|-------------|-----------------|
 | **`stuff`** (retenu) | Tout dans un prompt | Petit contexte, k faible |
@@ -377,6 +415,7 @@ Avec `k=4` chunks courts (512 tokens), `"stuff"` est adapté. Si `k` augmentait 
 **Choix retenu** : `RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=50)` sur `"{title}. {description}"`.
 
 **Alternatives**
+
 | Stratégie | Description | Avantages |
 |-----------|-------------|-----------|
 | **Document entier** (pas de chunking) | 1 doc = 1 événement | Pas de perte de contexte inter-chunks |
@@ -391,14 +430,6 @@ Pour des événements culturels dont la description tient souvent en moins de 51
 ### Infrastructure de déploiement
 
 **Choix retenu** : Docker + montage du `vector_store/` en volume. L'index est construit hors conteneur et partagé.
-
-**Alternatives**
-| Alternative | Description | Avantages |
-|-------------|-------------|-----------|
-| **Reconstruire l'index dans le conteneur** | `CMD` lance le pipeline complet | Self-contained |
-| **Séparation API / index** | Deux services Docker (api + builder) | Mise à jour de l'index sans downtime |
-| **Cloud Functions** | Serverless (AWS Lambda, Cloud Run) | Scalabilité automatique, zéro ops |
-| **Kubernetes** | Orchestration multi-instances | Production haute disponibilité |
 
 ---
 
