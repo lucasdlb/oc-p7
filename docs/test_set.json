@@ -1,62 +1,62 @@
 [
   {
-    "question": "Quels événements culturels sont prévus à Marseille en mai-juin 2026 ?",
-    "ground_truth": "À Marseille, plusieurs événements culturels sont prévus dont 'À bras le corps' (spectacle le 23 mai), 'Mai à Vélo 2026' (tout le mois de mai), 'Pleine Lune' (spectacle le 2 juillet), 'Capsule nouveaux entrants en portefeuille CRI' (réunion informationnelle le 19 mai), 'Capsule visio: Préparer son entretien d'embauche' (à La Ciotat le 5 mai), 'Reconversion : suivre une formation tout en maintenant sa rémunération' (28 mai), 'Découvrir les modalités de suivi accompagnement intensif' (28 mai).",
-    "context_uids": [79402515, 48717741, 24744166, 63746620, 22640272, 51725297, 40404745]
+    "question": "Y a-t-il des festivals de musique gratuits à Marseille ?",
+    "ground_truth": "Oui, l'Europa Festival 2026 se tient à Marseille le 9 mai 2026. C'est un festival gratuit mêlant têtes d'affiches musicales et village associatif pour faire vivre l'engagement local et européen.",
+    "context_uids": [75343556]
   },
   {
-    "question": "Y a-t-il des expositions d'art prévues dans les Bouches-du-Rhône ?",
-    "ground_truth": "Oui, plusieurs expositions sont prévues : 'MAPPING MONUMENTAL' à Aix-en-Provence (projection mapping le 23 mai), 'expo. photographies Noir et blanc d'Audrey Gros' à Saint-Chamas (23 mai), 'Exposition Peintures Contemporaines' à Marseille (jusqu'au 30 juin).",
-    "context_uids": [55560474, 36373161, 99999902]
+    "question": "Y a-t-il des expositions de photographies dans les Bouches-du-Rhône ?",
+    "ground_truth": "Oui, une exposition de photographies Noir et Blanc intitulée 'ONEIRO' par Audrey Gros est présentée à Saint-Chamas le 23 mai 2026. À Marseille, l'exposition 'Photographier le patrimoine du Liban, 1864-1970' est inaugurée le 21 mai 2026.",
+    "context_uids": [36373161, 98970834]
   },
   {
-    "question": "Je cherche des activités pour enfants dans le 13, qu'avez-vous ?",
-    "ground_truth": "'Tous à vélo, par toutatis !' à Saint-Paul-lès-Durance (24 mai) est une journée axée autour de la nature, des balades et de la découverte du patrimoine à vélo — adaptée aux familles. 'Mai à Vélo 2026' à Marseille est un défi communautaire de kilomètres à vélo, accessible aussi aux familles.",
-    "context_uids": [17218472, 48717741]
+    "question": "Des concerts de jazz sont-ils prévus dans le département ?",
+    "ground_truth": "Oui, plusieurs concerts de jazz sont prévus : Abdullah Miniawy se produit à Marseille le 3 juillet 2026 dans le cadre du Marseille Jazz des cinq continents, et son trio se produit à Arles le 16 juillet 2026. Une soirée Méditerranée au Théâtre Antique d'Arles est prévue le 15 juillet 2026. À Aubagne, Jazz des cinq continents présente Timon Imbert le 21 juin 2026.",
+    "context_uids": [31492252, 90935131, 80781897, 19109971]
   },
   {
-    "question": "Quels événements pour查找un emploi sont organisés à Marseille ?",
-    "ground_truth": "Plusieurs événements d'aide à l'emploi à Marseille : 'Reconversion : suivre une formation tout en maintenant sa rémunération' (28 mai), 'Capsule nouveaux entrants en portefeuille CRI' (19 mai), 'Capsule visio: Préparer son entretien d'embauche' à La Ciotat (5 mai), 'Découvrez les modalités de votre suivi suite à votre accompagnement intensif' (28 mai).",
-    "context_uids": [51725297, 63746620, 22640272, 40404745]
+    "question": "Quels événements pour trouver un emploi sont organisés à Vitrolles ?",
+    "ground_truth": "Les 'Mardis du Recrutement' se tiennent à Vitrolles le 2 juin 2026. C'est un rendez-vous hebdomadaire dédié aux demandeurs d'emploi inscrits pour rencontrer des recruteurs.",
+    "context_uids": [66677030]
   },
   {
-    "question": "Y a-t-il des événements musicaux ou de jazz dans le département ?",
-    "ground_truth": "Le 'Festival Jazz en Provence' à Aix-en-Provence se déroule du 15 au 20 juillet 2026 avec des artistes internationaux, concerts, masterclasses et ateliers. C'est un festival de jazz majeur dans le département.",
-    "context_uids": [99999901]
+    "question": "Y a-t-il des activités en plein air pour les familles dans le 13 ?",
+    "ground_truth": "'Tous à vélo, par toutatis !' à Saint-Paul-lès-Durance le 24 mai 2026 est une journée nature et patrimoine à vélo sous le thème des Gaulois, adaptée aux familles. Nature en Fête 2026 à Miramas le 24 mai propose une journée verte au Domaine de Cabasse.",
+    "context_uids": [17218472, 86206184]
   },
   {
-    "question": "Des événements gratuits pour les habitants de Vitrolles ?",
-    "ground_truth": "Les 'MARDIS DU RECRUTEMENT' à Vitrolles (2 juin) sont des événements dédiés au recrutement, gratuits pour les demandeurs d'emploi inscrits. Des sessions régulières pour rencontrer des employeurs.",
-    "context_uids": [43860253]
+    "question": "Des expositions d'art contemporain sont-elles prévues à Marseille ?",
+    "ground_truth": "Oui, l'exposition 'Louisa Babari, AFRICA' est visible à Marseille du 15 mai 2026 au 3 janvier 2027. L'exposition 'ART NOUVEAU – ART DÉCO. Marseille au cœur des styles' est accessible du 8 mai 2026 au 25 avril 2027.",
+    "context_uids": [26762611, 9236904]
   },
   {
-    "question": "Que faire un week-end à La Ciotat ?",
-    "ground_truth": "À La Ciotat, vous pouvez participer à la 'Capsule visio: Préparer son entretien d'embauche' le matin du 5 mai, ou aux 'Mardis de l'intérim avec SYNERGIE' le 27 octobre (plusieurs mois à l'avance).",
-    "context_uids": [22640272, 46623388]
+    "question": "Que se passe-t-il à Arles côté culture ?",
+    "ground_truth": "À Arles, la Nuit des musées au Musée Réattu et au musée local a lieu le 23 mai 2026. Un concert Soirée Méditerranée est programmé au Théâtre Antique le 15 juillet 2026. Le Concert Abdullah Miniawy Trio est prévu le 16 juillet 2026.",
+    "context_uids": [84290232, 80781897, 90935131]
   },
   {
-    "question": "Je veux découvrir le secteur de l'industrie dans le 13, des événements ?",
-    "ground_truth": "À Marignane, 'L'Industrie m'attire, je découvre le secteur et réalise des exercices liés au métier' le 2 juin — journée de découverte avec exercices pratiques pour explorer le secteur industriel et évaluer si'il vous correspond.",
-    "context_uids": [11418919]
+    "question": "Y a-t-il des événements autour de la littérature à Marseille ?",
+    "ground_truth": "Oui, le Festival Karkadé, dédié aux circulations littéraires contemporaines, se déroule à Marseille du 9 au 14 juin 2026 dans le cadre de la Saison Méditerranée 2026.",
+    "context_uids": [52996808]
   },
   {
-    "question": "Y a-t-il des marchés ou événements artisanaux dans les Bouches-du-Rhône ?",
-    "ground_truth": "Bien que le marché artisanal ne soit pas explicitement mentionné dans les événements actuels, le 'Festival Jazz en Provence' à Aix-en-Provence (15-20 juillet) inclut des ateliers et rencontres avec des artisans musicaux. Le 'MAPPING MONUMENTAL' à Aix-en-Provence (23 mai) propose une projection artistique gratuite.",
-    "context_uids": [99999901, 55560474]
+    "question": "Peut-on visiter des salles de musique à Aix-en-Provence ?",
+    "ground_truth": "Oui, une visite commentée du 6MIC, la salle de musiques actuelles d'Aix-en-Provence, est proposée le 27 juin 2026 (durée 1h30). Il est également possible de voir l'exposition 'Séchura, le désert qui se révèle aux archéologues' à Aix-en-Provence à partir du 12 juin 2026.",
+    "context_uids": [19233356, 13668161]
   },
   {
-    "question": "Des événements autour de la formation et de la reconversion professionnelle ?",
-    "ground_truth": "Plusieurs événements : 'Reconversion : suivre une formation tout en maintenant sa rémunération avec TRANSITION PRO PACA' à Marseille (28 mai, session matinale), 'Les Mardis de la Formation' à Istres (16 juin, matin) avec le GRETA POLE SANITAIRE ET SOCIAL, 'Réunion de Présentation de l'association HANVOL' à Istres (21 mai) pour préparation et recrutement.",
-    "context_uids": [51725297, 80929471, 69496451]
+    "question": "Y a-t-il des événements culturels gratuits lors de la Nuit des Musées ?",
+    "ground_truth": "Oui, la Nuit européenne des musées le 23 mai 2026 donne accès à plusieurs lieux : le Musée Réattu et d'autres musées à Arles, ainsi que le Quiz'Art à La Ciotat où les visiteurs peuvent tester leurs connaissances en histoire de l'art.",
+    "context_uids": [84290232, 75781082]
   },
   {
-    "question": "Des événements culturels sont-ils prévus à Aix-en-Provence ?",
-    "ground_truth": "À Aix-en-Provence : 'MAPPING MONUMENTAL' — projection mapping sur la façade de l'École supérieure d'art, en partenariat avec Hexalab, conçue par des étudiants (23 mai, soirée). Le 'Festival Jazz en Provence' (15-20 juillet) est aussi prévu avec concerts, masterclasses et rencontres.",
-    "context_uids": [55560474, 99999901]
+    "question": "Des événements autour de la musique classique sont-ils prévus à Aix-en-Provence ?",
+    "ground_truth": "Oui, un concert Vivaldi x Bach x Piazzolla Vol.2 est prévu à Aix-en-Provence le 29 mai 2026.",
+    "context_uids": [18020125]
   },
   {
-    "question": "Des événements pour les jeunes de 18-25 ans dans les Bouches-du-Rhône ?",
-    "ground_truth": "'Tous à vélo, par toutatis !' à Saint-Paul-lès-Durance (24 mai) est ouvert à tous et axé sur la nature et le patrimoine — ambiance jeune. 'Les Mardis de l'intérim avec SYNERGIE' à La Ciotat (27 octobre) inclut des opportunités pour jeunes. 'L'Industrie m'attire' à Marignane (2 juin) est adapté aux jeunes en découverte professionnelle.",
-    "context_uids": [17218472, 46623388, 11418919]
+    "question": "Y a-t-il des événements culturels à La Ciotat ?",
+    "ground_truth": "Oui, à La Ciotat lors de la Nuit des Musées le 23 mai 2026 : le Quiz'Art propose un quiz interactif sur l'histoire de l'art, et 'L'Art au cœur de la Nuit' propose une soirée culturelle. Un parcours archéologique du musée est également proposé le 12 juin 2026.",
+    "context_uids": [75781082, 61759880, 61352133]
   }
 ]
