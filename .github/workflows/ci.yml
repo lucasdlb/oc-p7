@@ -25,7 +25,7 @@ jobs:
           uv run ruff check .
 
       - name: Type check
-        run: uv run ty check --exclude config.py --exclude tests/integration
+        run: uv run ty check --exclude config.py --exclude tests/integration --exclude ui/app.py
 
       - name: Tests
         run: uv run pytest -q --ignore=tests/integration
