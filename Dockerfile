@@ -14,5 +14,3 @@ ENV PYTHONPATH=/app
 ENV RUN_MODE=production
 
 EXPOSE 8000
-
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
