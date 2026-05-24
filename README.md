@@ -363,7 +363,7 @@ FAISS est le choix le plus simple pour un prototype local. En production avec de
 
 ### Stratégie de récupération (Retrieval)
 
-**Choix retenu** : recherche par similarité cosinus pure avec `k=4` (dense retrieval, `"stuff"` chain type).
+**Choix retenu** : recherche par distance L2 (euclidienne) avec `k=4` (dense retrieval, `"stuff"` chain type) — comportement par défaut de `FAISS.from_documents` dans LangChain (`IndexFlatL2`).
 
 **Alternatives et améliorations possibles**
 
