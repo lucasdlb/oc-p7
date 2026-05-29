@@ -127,7 +127,7 @@ def build_dataset(test_cases: list[dict]) -> EvaluationDataset:
                 "reference": tc["ground_truth"],
             }
         )
-        time.sleep(2)
+        time.sleep(10)
 
     df = pd.DataFrame(rows)
     dataset = EvaluationDataset.from_pandas(df)
@@ -142,7 +142,7 @@ def main() -> object:  # pyright: ignore[reportReturnType]
         logger.error(f"Test set not found: {test_set_path}")
         raise SystemExit(1)
 
-    test_cases = load_test_set(test_set_path)[:2]
+    test_cases = load_test_set(test_set_path)
     dataset = build_dataset(test_cases)
 
     llm = get_mistral_llm()
@@ -154,26 +154,27 @@ def main() -> object:  # pyright: ignore[reportReturnType]
         metrics=[faithfulness, answer_relevancy, context_recall],
         llm=llm,
         embeddings=embeddings,
-        run_config=RunConfig(max_workers=1, max_wait=30, max_retries=6),
+        run_config=RunConfig(max_workers=1, max_wait=30, max_retries=3),
         raise_exceptions=False,
     )
 
-    raw_scores = getattr(eval_result, "scores", [])
-    if isinstance(raw_scores, list) and len(raw_scores) > 0:
-        scores = raw_scores[0]
-    else:
-        scores = {}
+    results_df = eval_result.to_pandas()  # type: ignore
+    output_path = PROJECT_ROOT / "docs" / "evaluation_results.csv"
+    results_df.to_csv(output_path, index=False)  # type: ignore[union-attr]
+    logger.info(f"Detailed results saved to {output_path}")
 
-    logger.info(f"\n=== RAGAS EVALUATION RESULTS === in Mode:{os.getenv('RUN_MODE')}")
-    logger.info(f"Faithfulness:    {scores.get('faithfulness', 'N/A')}")
-    logger.info(f"Answer Relevancy: {scores.get('answer_relevancy', 'N/A')}")
-    logger.info(f"Context Recall:  {scores.get('context_recall', 'N/A')}")
+    scores = {
+        "faithfulness": results_df["faithfulness"].mean(),
+        "answer_relevancy": results_df["answer_relevancy"].mean(),
+        "context_recall": results_df["context_recall"].mean(),
+    }
 
-    if hasattr(eval_result, "to_pandas"):
-        results_df = eval_result.to_pandas()  # type: ignore
-        output_path = PROJECT_ROOT / "docs" / "evaluation_results.csv"
-        results_df.to_csv(output_path, index=False)  # type: ignore[union-attr]
-        logger.info(f"\nDetailed results saved to {output_path}")
+    mode = os.getenv("RUN_MODE", "production")
+    n = len(results_df)
+    logger.info(f"\n=== RAGAS EVALUATION RESULTS === Mode:{mode} (n={n})")
+    logger.info(f"Faithfulness:     {scores['faithfulness']:.3f}")
+    logger.info(f"Answer Relevancy: {scores['answer_relevancy']:.3f}")
+    logger.info(f"Context Recall:   {scores['context_recall']:.3f}")
 
     return eval_result
 
