@@ -14,8 +14,9 @@ Assistant de recommandation d'événements culturels pour les Bouches-du-Rhône 
 6. [Configuration](#configuration)
 7. [Installation et démarrage](#installation-et-démarrage)
 8. [Tests](#tests)
-9. [Docker](#docker)
-10. [Choix architecturaux et alternatives envisageables](#choix-architecturaux-et-alternatives-envisageables)
+9. [Performance](#performance)
+10. [Docker](#docker)
+11. [Choix architecturaux et alternatives envisageables](#choix-architecturaux-et-alternatives-envisageables)
 
 ---
 
@@ -257,6 +258,40 @@ Utilise [Ragas](https://docs.ragas.io) sur 12 paires Q/R annotées (`docs/test_s
 | `ContextRecall` | Les documents pertinents ont-ils été retrouvés ? |
 
 Résultats exportés dans `docs/evaluation_results.csv`.
+
+---
+
+## Performance
+
+Mesurée avec `scripts/benchmark_rag.py` sur 3 questions du jeu de test (1 run chacune, `RUN_MODE=production`).
+
+### Timings par étape (ms)
+
+| Question | embed_ms | retriever_ms | llm_ms | total_ms |
+|---|---|---|---|---|
+| Y a-t-il des festivals de musique gratuits à Marseille ? | 304 | 202 | 1348 | 1555 |
+| Y a-t-il des expositions de photographies dans les Bouches-du-Rhône ? | 1560 | 289 | 2044 | 2335 |
+| Des concerts de jazz sont-ils prévus dans le département ? | 343 | 365 | 2795 | 3162 |
+| **Moyenne** | **736** | **285** | **2063** | **2350** |
+
+### Décomposition du temps moyen total (2350 ms)
+
+| Étape | Temps moyen | Part |
+|---|---|---|
+| Retriever FAISS (embed + similarity search) | 285 ms | 12.1% |
+| LLM Mistral (`mistral-large-latest`) | 2063 ms | 87.8% |
+| Overhead chaîne LangChain | 3 ms | 0.1% |
+
+> La quasi-totalité du temps est due au LLM. La recherche FAISS est négligeable (< 1 ms de calcul local — le reste est latence réseau vers l'API embed Mistral).
+
+### Relancer le benchmark
+
+```bash
+uv run python scripts/benchmark_rag.py          # 3 questions par défaut
+uv run python scripts/benchmark_rag.py --n 3    # 3 runs par question (p95 fiable)
+```
+
+Résultats sauvegardés dans `docs/benchmark_results.csv`.
 
 ---
 
